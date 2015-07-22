@@ -27,3 +27,7 @@
     Find the way to define the substitution models in the infiles
       Check the Jmodeltest outfiles for the species and create a list with the models for each species
 
+##### ALEX ####
+7) Make the cluster work... easy peasy!
+  
+

@@ -42,10 +42,10 @@ ABC_infile_single <- function(ABC_table_species, Database){
     # Read the database
     ABC_DB <- as.data.frame(read.delim(Database,header=T, sep="\t", stringsAsFactors=FALSE, na.strings="NA"))
     # Create an empty matrix to save the values for the sampling groups
-    ABC_sampling <- matrix(NA, nrow=length(ABC_DB$Median_Age[which(ABC_DB$Species == species_vector[s] & nchar(ABC_DB$Sequence) > 2)]), ncol=4)
+    ABC_sampling <- matrix(data=as.numeric(), nrow=length(unique(ABC_DB$Median_Age[which(ABC_DB$Species == species_vector[s] & nchar(ABC_DB$Sequence) > 2)])), ncol=4)
     # Send the sequence sampling to the first column
-    temp_single <- ABC_DB$Median_Age[which(ABC_DB$Species == species_vector[s] & nchar(ABC_DB$Sequence) > 2)], breaks=seq(0,50000,5000),plot=F)
-    ABC_sampling[,1] <- temp_hist$counts
+    temp_single <- as.data.frame(table(ABC_DB$Median_Age[which(ABC_DB$Species == species_vector[s] & nchar(ABC_DB$Sequence) > 2)]))
+    ABC_sampling[,c(1,2)] <- as.matrix(as.data.frame(table(ABC_DB$Median_Age[which(ABC_DB$Species == species_vector[s] & nchar(ABC_DB$Sequence) > 2)]))[,c(2,1)])
     # Send the age of the bins divided by the generation time to the second column
     ABC_sampling[,2] <- temp_hist$breaks[-11]/Gen_time
     # Only one population 0
