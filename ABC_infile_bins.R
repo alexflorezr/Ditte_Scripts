@@ -10,7 +10,7 @@ for (s in seq_along(species_vector)){
       assign(colnames(ABC_table)[i], ABC_table[s,i])
     }
 # Create a conection (e.i. an empty file) to write the text
-  fileConn <-file(paste(species_vector[s], "bin", Event_type, sep="-"), "w")
+  fileConn <-file(paste(species_vector[s], "bin", paste(Event_type,".par", sep=""), sep="-"), "w")
 # The input files contain 12 blocks, see http://web.stanford.edu/group/hadlylab/ssc/index.html
 # Before every block there is a description comment, which start with //
 ####################################################################################################
@@ -98,4 +98,4 @@ close(fileConn)
 
 }
 }
-ABC_infile_bins("species_fast.txt", "DATABASE.txt")
+ABC_infile_bins("species_fast-3.txt", "DATABASE.txt")
