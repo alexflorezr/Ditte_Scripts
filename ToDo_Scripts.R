@@ -1,7 +1,7 @@
 ##### BOTH ####
 1) Add slow bottleneck to the infile generator
 
-##### ALEX ####
+#### DONE ##### ALEX ####
 2)  Sampling:
   a.	One sample group per record
     i.	Two scripts 
