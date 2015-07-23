@@ -22,7 +22,7 @@ ABC_infile_single <- function(ABC_table_species, Database){
       assign(colnames(ABC_table)[i], ABC_table[s,i])
     }
     # Create a conection (e.i. an empty file) to write the text
-    fileConn <-file(paste(Species, Npop, Event_type, paste(Event_time, ".par", sep=""), sep="_"), "w")
+    fileConn <-file(paste(species_vector[s], "single", paste(Event_type,".par", sep=""), sep="-"), "w")
     # The input files contain 12 blocks, see http://web.stanford.edu/group/hadlylab/ssc/index.html
     # Before every block there is a description comment, which start with //
     ####################################################################################################
@@ -41,15 +41,16 @@ ABC_infile_single <- function(ABC_table_species, Database){
     writeLines(paste("//", "Sample sizes: # samples, age in generations, deme, stat group"), fileConn)
     # Read the database
     ABC_DB <- as.data.frame(read.delim(Database,header=T, sep="\t", stringsAsFactors=FALSE, na.strings="NA"))
+    # Create a temporal table with the frequencies per record for each species
+    temp_single <- as.data.frame(table(ABC_DB$Median_Age[which(ABC_DB$Species == species_vector[s] & nchar(ABC_DB$Sequence) > 2)]), stringsAsFactors=F)
     # Create an empty matrix to save the values for the sampling groups
-    ABC_sampling <- matrix(data=as.numeric(), nrow=length(unique(ABC_DB$Median_Age[which(ABC_DB$Species == species_vector[s] & nchar(ABC_DB$Sequence) > 2)])), ncol=4)
+    ABC_sampling <- matrix(data=as.numeric(), nrow=dim(temp_single)[1], ncol=4)
     # Send the sequence sampling to the first column
-    temp_single <- as.data.frame(table(ABC_DB$Median_Age[which(ABC_DB$Species == species_vector[s] & nchar(ABC_DB$Sequence) > 2)]))
-    ABC_sampling[,c(1,2)] <- as.matrix(as.data.frame(table(ABC_DB$Median_Age[which(ABC_DB$Species == species_vector[s] & nchar(ABC_DB$Sequence) > 2)]))[,c(2,1)])
-    # Send the age of the bins divided by the generation time to the second column
-    ABC_sampling[,2] <- temp_hist$breaks[-11]/Gen_time
+    ABC_sampling[,1] <- as.numeric(temp_single$Freq)
+    # Send the sequence dating to the second column
+    ABC_sampling[,2] <- round(as.numeric(temp_single$Var1)/Gen_time)
     # Only one population 0
-    ABC_sampling[,3] <- rep(0, length(ABC_sampling[,3]))
+    ABC_sampling[,3] <- 0
     # Statistical groups defined by a climatic event
     for ( i in seq_along(ABC_sampling[,4])){
       if (ABC_sampling[i,2]*Gen_time < Climatic_time){
