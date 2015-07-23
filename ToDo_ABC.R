@@ -22,7 +22,7 @@
 5)	Number of populations
   a.	For now, one population 2 statistical groups (e.i. before and after)
 
-##### ALEX ####
+#### DONE ##### ALEX ####
 6)  Mutation model
     Find the way to define the substitution models in the infiles
       Check the Jmodeltest outfiles for the species and create a list with the models for each species
