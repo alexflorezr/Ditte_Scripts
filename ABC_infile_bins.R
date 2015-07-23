@@ -98,4 +98,4 @@ close(fileConn)
 
 }
 }
-ABC_infile_bins("species_fast-3.txt", "DATABASE.txt")
+ABC_infile_bins("species_fast.txt", "DATABASE.txt")
