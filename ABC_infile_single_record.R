@@ -77,7 +77,7 @@ ABC_infile_single <- function(ABC_table_species, Database){
     writeLines("// Historical event: date, src, sink, %mig, new_pop_size, new_growth_rate, new_migration_matrix", fileConn)
     if(unique(ABC_table$Event_type) == "fast"){
       writeLines("1 event", fileConn)
-      writeLines(paste(Event_time, Event_src, Event_sink, Event_mig, Event_new_Psize, Event_new_r, sep=" "), fileConn)
+      writeLines(paste(Event_time, Event_src, Event_sink, Event_mig, Event_new_Psize, Event_new_r, Event_new_mig, sep=" "), fileConn)
     }
     ####################################################################################################
     ########        7th block, used to define the mutation rate for the full population         ########
