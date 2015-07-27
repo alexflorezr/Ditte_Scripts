@@ -8,7 +8,7 @@
       1.	One for bins
       2.	One for every record
 
-##### DITTE ####
+##### DONE #### 
 3)	Effective pop size
   a.	We will use the census estimates on IUCN
   b.	When not available it would be substituted by literature
