@@ -1,3 +1,7 @@
+ABC_table_species <- "species_fast.txt"
+
+
+
 rm(list=ls())
 #====== Create input files using species database =====
 ABC_infile_bins <- function(ABC_table_species, Database){
@@ -83,11 +87,14 @@ for (s in seq_along(species_vector)){
   writeLines("// Data type : either DNA, RFLP, or MICROSAT", fileConn)
   writeLines(paste("DNA", as.character(0.33333), sep=" "),  fileConn)
 ####################################################################################################
-########                      10th block, used to define the mutation rate                  ########
+########                      10th block, used to define the mutation rate model            ########
 ####################################################################################################
   writeLines("// Mutation rates: gamma parameters, theta and k", fileConn)
-  if(unique(ABC_table$Mutation_model) == "HKY"){
-    writeLines("0.4 10", fileConn)
+  if(!is.na(Gamma)){
+    writeLines(paste(Gamma, "10", sep=" "), fileConn)
+  }
+  if(is.na(Gamma)){
+    writeLines(paste("0", "0", sep=" "), fileConn)
   }
 ####################################################################################################
 ########                    11th block, used to define the abstract priors                  ########
@@ -98,4 +105,4 @@ close(fileConn)
 
 }
 }
-ABC_infile_bins("species_fast-3.txt", "DATABASE.txt")
+ABC_infile_bins("species_fast.txt", "DATABASE.txt")
