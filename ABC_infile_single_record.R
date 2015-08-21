@@ -5,7 +5,7 @@ setwd("/Users/afr/Desktop/Temporal_test/")
 
 
 #### TO DELETE BEFORE READ THE FUNCTION ########
-ABC_table_species <-  "species_fast.txt"     ###
+ABC_table_species <-  "species_constant.txt"     ###
 Database <- "DATABASE.txt"                   ###
 s <- species_vector[1]
 s <- "Saiga_tatarica"
@@ -66,7 +66,7 @@ ABC_infile_single <- function(ABC_table_species, Database){
     ########                       4th block, used to define growth rate                        ########
     ####################################################################################################
     writeLines("// Growth rates", fileConn)
-    writeLines(Growth_rate, fileConn)
+    writeLines(as.character(Growth_rate), fileConn)
     ####################################################################################################
     ########         5th block, used to define the number of migration matrices                 ########
     ####################################################################################################
@@ -109,10 +109,10 @@ ABC_infile_single <- function(ABC_table_species, Database){
     ########                    11th block, used to define the abstract priors                  ########
     ####################################################################################################
     writeLines("// Abstract priors", fileConn)
-    writeLines(ABC_table$Abstract_prior, fileConn)
+    writeLines(as.character(Abstract_prior), fileConn)
     close(fileConn)
     
   }
 }
-ABC_infile_single("species_fast.txt", "DATABASE.txt")
+ABC_infile_single("species_constant.txt", "DATABASE.txt")
 
