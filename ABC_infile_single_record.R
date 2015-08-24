@@ -115,4 +115,3 @@ ABC_infile_single <- function(ABC_table_species, Database){
   }
 }
 ABC_infile_single("species_constant.txt", "DATABASE.txt")
-
