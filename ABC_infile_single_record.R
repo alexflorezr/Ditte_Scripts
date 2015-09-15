@@ -111,7 +111,6 @@ ABC_infile_single <- function(ABC_table_species, Database){
     writeLines("// Abstract priors", fileConn)
     writeLines(as.character(Abstract_prior), fileConn)
     close(fileConn)
-    
   }
 }
 ABC_infile_single("species_constant.txt", "DATABASE.txt")
