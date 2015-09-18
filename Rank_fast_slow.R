@@ -96,8 +96,8 @@ sum(g_mean_species[which(as.numeric(rownames(g_mean_species)) > 21000,18])
 for (sp in seq_along(colnames(g_mean_species))){
   if (sp == 1){
     plot(as.numeric(rownames(g_mean_species)), g_mean_species[,sp], pch=15, cex=1.3, col=paste(Single_sp$Sp_color[which(Single_sp$Species == colnames(g_mean_species)[sp])], "99", sep=""), frame=F, xlab="Time (years BP)", ylab=("Climate velocity (km/year)"), ylim=c(-0.05,0.5), xaxt="n")
-    axis(side=1, line=-2)
-    text(x=as.numeric(rownames(g_mean_species)), y=-0.03, labels=g_mean_species[,18], srt=90, cex=0.7, adj=c(0,0.5))
+    axis(side=1, line=-1)
+    text(x=as.numeric(rownames(g_mean_species)), y=-0.03, labels=g_mean_species[,18], srt=90, cex=0.5, adj=c(0,0.5))
   } 
   else{
     points(as.numeric(rownames(g_mean_species)), g_mean_species[,sp], pch=15,cex=1.3, col=paste(Single_sp$Sp_color[which(Single_sp$Species == colnames(g_mean_species)[sp])], "99", sep=""))
@@ -166,8 +166,12 @@ for_density <- na.omit(cli_vel_tmp_hol)
 for_density[,1] <- log(for_density[,1]+ 0.00000001)
 sm.density.compare(for_density[,1], for_density[,2], col=bins_col, lty=1)
 ### Density for the regional values ####
-bins_col_func <- colorRampPalette(c("#8B4500", "#8B6508", "#FF7F00","#FFA500","#698B22", "#90EE90", "#B4EEB4"))
-bins_col <- bins_col_func(37)
+bins_col_brown <- colorRampPalette("#8B4513")
+bins_col_orange  <- colorRampPalette("#FF7F00")
+bins_col_yellow  <- colorRampPalette("#EEC900")
+bins_col_green <- colorRampPalette("#008B00")
+bins_col_grey <- colorRampPalette("#8EE5EE")
+bins_col <- c(bins_col_brown(19), bins_col_orange(8), bins_col_yellow(4), bins_col_green(2), bins_col_grey(4))
 hist_breaks <- seq(log(0.000000001),log(2000), 0.1)
 par(lwd=0.5)
 plot.new()
@@ -175,27 +179,64 @@ par(mar=c(7,7,7,7))
 for (point in seq_along(bins_50to0)){
   if (point <= 1){
     temp_d <- density(log(cli_vel_tmp_hol$V1[which(cli_vel_tmp_hol$V2 == bins_50to0[point])] + 0.00000001), na.rm=T)
-    plot(temp_d, col=paste(bins_col[point], 50, sep=""), xlim=log(c(0.00001, 100)), ylim=c(0,0.5), main=NA, frame=F, xaxt="n", xaxs="i", yaxs="i", xlab="")
+    plot(temp_d, col=paste(bins_col[point], 50, sep=""), xlim=log(c(0.00001, 100)), ylim=c(-0.05,0.5), main=NA, frame=F, xaxt="n", xaxs="i", yaxs="i", xlab="")
     polygon(temp_d, col=paste(bins_col[point], 50, sep="") , border=bins_col[point], lwd=2)
-    axis(side=2)
+    x3=mean(log(cli_vel_tmp_hol$V1[which(cli_vel_tmp_hol$V2 == bins_50to0[point])] + 0.00000001), na.rm=T)
+    segments(x0=x3, x1=x3, y0=0, y1=-0,047, col=bins_col[point], lwd=3)
     axis(side=1, at=log(c(0.000001,0.00001, 0.0001, 0.001,0.01,0.1,1,10, 100, 1000)), labels=c(0.000001,0.00001, 0.0001, 0.001,0.01,0.1,1,10, 100, 1000), line=0.001)
-    mtext(side=3, "Climate velocity through time for the Holarctic region", line=2, cex=2)
-    mtext(side=1, "Climate velocity (km/yr)", line=2)
+    mtext(side=1, "Climate velocity (km/yr)", line=3)
+    axis(side=2)
+    mtext(side=3, "Climate velocity through time for the Holarctic region", line=3, cex=2)
+    
     
   }
   else {
     temp_d <- density(log(cli_vel_tmp_hol$V1[which(cli_vel_tmp_hol$V2 == bins_50to0[point])] + 0.00000001), na.rm=T)
     polygon(temp_d, col=paste(bins_col[point], 50, sep="") , border=bins_col[point] , lwd=2)
-  }
+    x3=mean(log(cli_vel_tmp_hol$V1[which(cli_vel_tmp_hol$V2 == bins_50to0[point])] + 0.00000001), na.rm=T)
+    segments(x0=x3, x1=x3, y0=0, y1=-0.047, col=bins_col[point], lwd=3, lty=1)
+    }
 }
-legend(x=log(20), y=0.5, fill=bins_col, legend=bins_50to0, cex=0.5, border=F, bty="n", x.intersp=0.1)
-segments(x0=log(0.25), x1=log(0.25), y0=0,y1=0.5, lwd=2, lty=2, col="#00008B")
-text(x=log(0.18),y=0.35,"Polar region", srt=90, adj=c(0,1),col="#00008B", cex=0.7)
-segments(x0=log(0.26), x1=log(0.26), y0=0,y1=0.5, lwd=2, lty=2, col="#4F94CD")
-text(x=log(0.28),y=0.35,"Temperate region", srt=90,adj=c(0,1), col="#4F94CD", cex=0.7)
-segments(x0=log(0.4), x1=log(0.4), y0=0,y1=0.5, lwd=2, lty=2, col="#00CDCD")
-text(x=log(0.45),y=0.35,"Cold region", srt=90,adj=c(0,1), col="#00CDCD", cex=0.7)
+legend(x=log(20), y=0.5, fill=bins_col, legend=bins_50to0, cex=0.35, border=F, bty="n", x.intersp=0.1)
+segments(x0=log(0.25), x1=log(0.25), y1=0, y0=-0.047, lwd=3, lty=3, col="#00008B")
+#text(x=log(10),y=-0.005,"Polar region", adj=c(0,1),col="#00008B", cex=0.7)
+segments(x0=log(0.26), x1=log(0.26), y1=0, y0=-0.047, lwd=3, lty=3, col="#4F94CD")
+#text(x=log(10),y=-0.017,"Temperate region",adj=c(0,1), col="#4F94CD", cex=0.7)
+segments(x0=log(0.4), x1=log(0.4), y1=0, y0=-0.047, lwd=3,lty=3, col="#00CDCD")
+#text(x=log(10),y=-0.030,"Cold region",adj=c(0,1), col="#00CDCD", cex=0.7)
+abline(h=0, col="white", lwd=3)
+abline(h=-0.048, col="white", lwd=2)
+### t-test for the regional values
+t_test_region <- 
+tt<-t.test(log(cli_vel_tmp_hol$V1[which(cli_vel_tmp_hol$V2 == bins_50to0[1])] + 0.00000001), log(cli_vel_tmp_hol$V1[which(cli_vel_tmp_hol$V2 == bins_50to0[1])] + 0.00000001))
+kk <- aov(formula= cli_vel_tmp_hol$V2 ~ log(cli_vel_tmp_hol$V1 + 0.00000001))
 
+for_t_test <- na.omit(cli_vel_tmp_hol)
+for_t_test[,1] <- log(for_t_test$V1 + 0.00000001)
+colnames(for_t_test) <- c("Clim_vel", "Time")
+lm_region <- lm(for_t_test$Clim_vel ~ as.factor(for_t_test$Time))
+anova_region <- anova(lm_region)
+aov_region <- aov(for_t_test$Clim_vel ~ as.factor(for_t_test$Time))
+tukey_region <- TukeyHSD(x=aov_region, 'as.factor(for_t_test$Time)', conf.level=0.95)
+install.packages("agricolae")
+library(agricolae)
+HSD_region  <- HSD.test(aov_region, 'as.factor(for_t_test$Time)', group=T, alpha=)
+HSD_region_mat <- as.data.frame(HSD_region$groups, stringsAsFactors=F)
+HSD_region_mat[,1] <- as.numeric(levels(HSD_region_mat[,1]))
+HSD_region_mat <- HSD_region_mat[order(HSD_region_mat[,1]),]
+
+
+
+plot(HSD_region_mat[,3], HSD_region_mat[,1], pch=19)
+tukey_region_df <- as.data.frame(tukey_region$'as.factor(for_t_test$Time)')
+
+ajuste <- lm(chocolate$Sabor ~ chocolate$Tipo + chocolate$Provador)
+summary(ajuste)
+anova(ajuste)
+a1 <- aov(chocolate$Sabor ~ chocolate$Tipo + chocolate$Provador)
+posthoc <- TukeyHSD(x=a1, 'chocolate$Tipo', conf.level=0.95)
+
+plot(aov_region)
 
 ### histogram for the regional values ENDS here ####
 bins_col_func <- colorRampPalette(c("#8B4500", "#8B6508", "#FF7F00","#FFA500","#698B22", "#90EE90", "#B4EEB4"))
@@ -213,12 +254,12 @@ col_3D <- bins_col
 col_3D <- terrain.colors(28)
 col_var <- x
 for (t in seq_along(x)[-1]){
-  col_3D  <- rbind(col_3D , bins_col)
+  col_3D  <- rbind(col_3D , terrain.colors(28))
 }
 for (t in 1:36){
   col_var <- cbind(col_var , x)
 }
-hist3D(x=x, y=y, z=z, colvar=col_var, col=as.matrix(col_3D),phi=0, theta=40, border="white", lwd=0.5, xlab="Climate velocity", ylab="Time", labels=x, zlab="", colkey=as.list(bins_col))
+hist3D(x=x, y=y, z=z, colvar=y, col=as.matrix(col_3D),phi=0, theta=40, border="white", lwd=0.5, xlab="Climate velocity", ylab="Time", labels=x, zlab="", colkey=as.list(bins_col))
 ########### Ends here ########
 
 dim(col_3D)
@@ -268,7 +309,7 @@ for (bin in seq_along(rownames(g_mean_region))){
 }
 
 kk <- log(as.vector(na.omit(cli_vel_tmp_hol$V1[which(cli_vel_tmp_hol$V2 == rownames(g_mean_region)[bin])])))
-plot(g_mean_region)
+plot(g_mean_region[,1], rownames(g_mean_region))
 ### median per bin
 g_median_region <- matrix(nrow=37, ncol=1)
 rownames(g_median_region) <- bins_50to0
