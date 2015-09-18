@@ -1,6 +1,9 @@
 rm(list=ls())
 library(raster)
 library(rgdal)
+library(rgl)
+library(plot3D)
+library(sm)
 # Upload the climate velocity files
 setwd("/Users/afr/Desktop/Regression/Cli_vel/")
 cli_vel_Tmp <- stack("climate_change_velocity_perYear_tmp_rescaled_truncated_0_000005.grd")
@@ -49,6 +52,7 @@ Full_DB_LL <- Full_DB_LL[-which(Full_DB_LL$Median_Age > 50000),]
 #########################################################################################################################
 species_set_clim <- as.data.frame(matrix(nrow=0, ncol=12))
 species_set_BSP <- as.data.frame(matrix(nrow=0, ncol=6))
+Species_set_clim <- TRUE
 for (s in seq_along(Single_sp$Species)){
   # Database to work with, contains all the species and data
   temp_DB_climate <- Full_DB_LL[which(Full_DB_LL$Species==Single_sp$Species[s]),]
@@ -112,10 +116,6 @@ abline(h=0.20, col="#40E0D0", lwd=3)
 text("Temperate region",  col="#40E0D0", x=50000, y=0.21, cex=0.85, adj=c(1,0))
 ### plot variation in regional climate velocity ####
 ### Number of cells with climate velocity values per time bin ####
-install.packages("rgl")
-install.packages("plot3D")
-library(rgl)
-library(plot3D)
 cell_bin <- matrix(nrow=length(bins_50to0), ncol=2)
 clim_vel_bin <- matrix(nrow=length(cli_vel_tmp_hol$V1[which(cli_vel_tmp_hol$V2 == bins_50to0[point])]), ncol=0)
 rownames(cell_bin) <- bins_50to0
@@ -160,8 +160,6 @@ text(x=log(0.45),y=0.35,"Cold region", srt=90,adj=c(0,1), col="#00CDCD", cex=0.7
 
 
 ### Density comparison for the regional values ####
-install.packages("sm")
-library(sm)
 for_density <- na.omit(cli_vel_tmp_hol)
 for_density[,1] <- log(for_density[,1]+ 0.00000001)
 sm.density.compare(for_density[,1], for_density[,2], col=bins_col, lty=1)
@@ -207,6 +205,16 @@ segments(x0=log(0.4), x1=log(0.4), y1=0, y0=-0.047, lwd=3,lty=3, col="#00CDCD")
 abline(h=0, col="white", lwd=3)
 abline(h=-0.048, col="white", lwd=2)
 ### t-test for the regional values
+
+
+
+
+
+
+
+
+
+
 t_test_region <- 
 tt<-t.test(log(cli_vel_tmp_hol$V1[which(cli_vel_tmp_hol$V2 == bins_50to0[1])] + 0.00000001), log(cli_vel_tmp_hol$V1[which(cli_vel_tmp_hol$V2 == bins_50to0[1])] + 0.00000001))
 kk <- aov(formula= cli_vel_tmp_hol$V2 ~ log(cli_vel_tmp_hol$V1 + 0.00000001))
@@ -262,15 +270,6 @@ for (t in 1:36){
 hist3D(x=x, y=y, z=z, colvar=y, col=as.matrix(col_3D),phi=0, theta=40, border="white", lwd=0.5, xlab="Climate velocity", ylab="Time", labels=x, zlab="", colkey=as.list(bins_col))
 ########### Ends here ########
 
-dim(col_3D)
-factor(z, levels=seq(19, 99, by=10))
-dim(col_var)
-dim(z)
-
-
-
-
-
 
 ### using median ###
 g_median_species <- matrix(nrow=37, ncol=17)
@@ -307,9 +306,6 @@ rownames(g_mean_region) <- bins_50to0
 for (bin in seq_along(rownames(g_mean_region))){
   g_mean_region[bin,1] <- exp(mean(log(as.vector(na.omit(cli_vel_tmp_hol$V1[which(cli_vel_tmp_hol$V2 == rownames(g_mean_region)[bin])] +0.000000000000001)))))
 }
-
-kk <- log(as.vector(na.omit(cli_vel_tmp_hol$V1[which(cli_vel_tmp_hol$V2 == rownames(g_mean_region)[bin])])))
-plot(g_mean_region[,1], rownames(g_mean_region))
 ### median per bin
 g_median_region <- matrix(nrow=37, ncol=1)
 rownames(g_median_region) <- bins_50to0
