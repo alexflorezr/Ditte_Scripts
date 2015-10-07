@@ -173,7 +173,7 @@ for (sp in seq_along(Sp_fast_slow$Species)){
         text(SS_name_vector[name], x=7000, y=(temp_max/2.5)+sum(rep(temp_max/12, times=name)), col="#363636", adj=c(1,0), cex=0.7)
         }
         if((min(Events) <= 10000) | is.na(min(Events))){
-        text(SS_name_vector[name], x=30000, y=(temp_max/2.5)+sum(rep(temp_max/12, times=name)), col="#363636", adj=c(0,0), cex=0.7)
+        text(SS_name_vector[name], x=40000, y=(temp_max/2.5)+sum(rep(temp_max/12, times=name)), col="#363636", adj=c(0,0), cex=0.7)
         }
       abline(v=Events, lwd=5, col=c("#FF7F00", "#EEC591"))
       }
@@ -182,7 +182,7 @@ for (sp in seq_along(Sp_fast_slow$Species)){
       Nuc_bef_aft_raw[(sp*2)-1,] <- c(Sp_bef_aft$Species[sp],SS_bef[3], SS_aft[3],  (SS_bef[3] - SS_aft[3]), "Fast")
     }
     if (event == 2 ){
-      Nuc_bef_aft_raw[(sp*2)-1,] <- c(Sp_bef_aft$Species[sp],SS_bef[3], SS_aft[3],  (SS_bef[3] - SS_aft[3]), "Slow")
+      Nuc_bef_aft_raw[(sp*2),] <- c(Sp_bef_aft$Species[sp],SS_bef[3], SS_aft[3],  (SS_bef[3] - SS_aft[3]), "Slow")
     }
   }
 ### ENDS HERE #########################################################################################################################
@@ -253,11 +253,16 @@ for (sp in seq_along(Sp_fast_slow$Species)){
 }
 
 
-
-
-
-
-
+### STARTS HERE #########################################################################################################################
+############################################################################################################################
+plot_nuc_bef_aft  <- Nuc_bef_aft_raw
+plot_nuc_bef_aft <- plot_nuc_bef_aft[-which(plot_nuc_bef_aft$Nuc_bef == -999),]
+boxplot(as.numeric(plot_nuc_bef_aft$Nuc_diff) ~ as.factor(plot_nuc_bef_aft$Event_type), plot=F)
+plot(as.numeric(plot_nuc_bef_aft$Nuc_diff), col=ifelse(plot_nuc_bef_aft$Event_type == "Fast", "red", "green"), pch=16, cex=2)
+for (spe in seq_along(plot_nuc_bef_aft$Species)){
+  text(x=spe, y=as.numeric(plot_nuc_bef_aft$Nuc_diff)[spe], plot_nuc_bef_aft$Species[spe], srt=90, adj=c(1,0), cex=0.8)
+}
+  
 
 
 
