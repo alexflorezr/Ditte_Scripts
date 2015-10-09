@@ -24,7 +24,7 @@ require(sidier)
 ############################################################################################################################
 setwd("~/Desktop/MSc_Ditte/")
 Sp_fast_slow <- read.delim("Velocity_4_species", stringsAsFactors=F, header=T)
-Sp_fast_slow <- Sp_fast_slow[1,]
+Sp_fast_slow <- Sp_fast_slow[3,]
 str(Sp_fast_slow)
 #Sampling_aDNA <- function(Sp_fast_slow, database, ind_color){
 Sp_bef_aft <- as.data.frame(matrix(nrow=dim(Sp_fast_slow)[1], ncol=7))
@@ -38,6 +38,7 @@ plot_sub <- FALSE
 pop_stats <- FALSE
 adjacent_nuc <- TRUE
 buffer <- 7000
+plot_map <- TRUE
 setwd("~/Desktop/Ch1_Figures/Figure_one/Same_length_seqs/")
 plot.new()
 ###########################################################################################
@@ -207,10 +208,22 @@ for (sp in seq_along(Sp_fast_slow$Species)){
     }
     if (event == 1 ){
       Nuc_bef_aft_raw[(sp*2)-1,] <- c(Sp_bef_aft$Species[sp],SS_bef[3], SS_aft[3],  (SS_bef[3] - SS_aft[3]), "Fast")
+      if(plot_map == TRUE){
+        newmap <- getMap(resolution = "low")
+        plot(newmap, xlim = c(-180, 180), ylim = c(0,90), asp=1, main="Fast")
+        points(temp_Coor_aft[,2], temp_Coor_aft[,1], col="#FF7F0070", cex=2, pch=17)
+        points(temp_Coor_bef[,2], temp_Coor_bef[,1], col="#FF7F0070", cex=2, pch=16)
+      }
     }
     if (event == 2 ){
       Nuc_bef_aft_raw[(sp*2),] <- c(Sp_bef_aft$Species[sp],SS_bef[3], SS_aft[3],  (SS_bef[3] - SS_aft[3]), "Slow")
-    }
+      if(plot_map == TRUE){
+        newmap <- getMap(resolution = "low")
+        plot(newmap, xlim = c(-180, 180), ylim = c(0,90), asp=1, main="Slow")
+        points(temp_Coor_aft[,2], temp_Coor_aft[,1], col="#9BCD9B70", cex=2, pch=17)
+        points(temp_Coor_bef[,2], temp_Coor_bef[,1], col="#9BCD9B70", cex=2, pch=16)
+      }
+      }
     }
     
 ### ENDS HERE #########################################################################################################################
