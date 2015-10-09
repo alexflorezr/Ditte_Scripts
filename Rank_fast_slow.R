@@ -70,8 +70,8 @@ for (s in seq_along(Single_sp$Species)){
       temp_points[(counter1:(counter1 + length(records)-1)),c(which(colnames(temp_points) == "Cell"), which(colnames(temp_points) == "Cli_vel_tmp")) ] <- extract(cli_vel_Tmp, layer=layers[bin], nl=1, y=points, cellnumbers=T)
       temp_points[(counter1:(counter1 + length(records)-1)),which(colnames(temp_points) == "Cli_vel_prc")]<- extract(cli_vel_Prc, layer=layers[bin], nl=1, y=points)
       temp_points[(counter1:(counter1 + length(records)-1)),which(colnames(temp_points) == "Cli_vel_tnp")]<- extract(cli_vel_TnP, layer=layers[bin], nl=1, y=points)
-      #temp_points[(counter1:(counter1 + length(records)-1)),which(colnames(temp_points) == "Biome_kpp")]<- extract(biome_kpp, layer=(layers[bin])+1, nl=1, y=points)
-      #temp_points[(counter1:(counter1 + length(records)-1)),which(colnames(temp_points) == "Biome_bio")]<- extract(biome_bio, layer=(layers[bin])+1, nl=1, y=points)
+      temp_points[(counter1:(counter1 + length(records)-1)),which(colnames(temp_points) == "Biome_kpp")]<- extract(biome_kpp, layer=(layers[bin])+1, nl=1, y=points)
+      temp_points[(counter1:(counter1 + length(records)-1)),which(colnames(temp_points) == "Biome_bio")]<- extract(biome_bio, layer=(layers[bin])+1, nl=1, y=points)
       counter1 <- counter1+length(records)
     }
   } 
@@ -80,6 +80,41 @@ for (s in seq_along(Single_sp$Species)){
     species_set_clim <- rbind(species_set_clim, get(paste(Single_sp$Sp[s], "points", sep="_")))
   }
 }
+sp_vector_test <- c("Bs", "Mp", "Ca", "Om")
+sp_vector_color <- c("#76EEC690", "#6495ED90", "#8B887890", "#EEAD0E90")
+for (sp_test in seq_along(sp_vector_test)){
+temp_sp_points <- get(paste(sp_vector_test[sp_test], "_points", sep="") )
+temp_sp_points <- temp_sp_points[-which(is.na(temp_sp_points$Cli_vel_tmp)),]
+out <- which(temp_sp_points$Cli_vel_tmp == max(temp_sp_points$Cli_vel_tmp))
+temp_sp_points <- temp_sp_points[-out,]
+if ( sp_test == 1){
+  #temp_bp <- boxplot(temp_sp_points$Cli_vel_tmp ~ temp_sp_points$Time_bin, plot=F)
+  #plot(x=temp_bp$names, temp_bp$stats[3,], col="pink", pch=16)
+  #all_sp <- temp_sp_points
+  hist(temp_sp_points$Cli_vel_tmp, col=sp_vector_color[sp_test], breaks=seq(0,3,by=0.1))
+  #boxplot(temp_sp_points$Cli_vel_tmp ~ temp_sp_points$Time_bin, at=as.numeric(temp_bp$names), width=rep(1000, times=length(temp_bp$names)), las=2)
+}else{
+  #temp_bp <- boxplot(temp_sp_points$Cli_vel_tmp ~ temp_sp_points$Time_bin, plot=F)
+  #points(x=temp_bp$names, temp_bp$stats[3,], col="pink", pch=16)
+  #all_sp <- rbind(all_sp, temp_sp_points)
+  hist(temp_sp_points$Cli_vel_tmp, col=sp_vector_color[sp_test], add=T, breaks=seq(0,3,by=0.1))
+  #boxplot(temp_sp_points$Cli_vel_tmp ~ temp_sp_points$Time_bin, at=as.numeric(temp_bp$names), width=rep(1000, times=length(temp_bp$names)), add=T, las=2)
+}
+}
+plot(all_sp$Time_bin, all_sp$Cli_vel_tmp)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ####### geometric mean estimates for species per bin #####
 ### working !!!! ####
@@ -94,7 +129,7 @@ for (species in seq_along(colnames(g_mean_species))[-18]){
     g_mean_species[bin,length(Single_sp$Species)+1] <- g_mean_species[bin,length(Single_sp$Species)+1] + length(na.omit(species_set_clim$Cli_vel_prc[species_set_clim$Species == colnames(g_mean_species)[species] & species_set_clim$Time_bin == rownames(g_mean_species)[bin]]))
   }
 }
-sum(g_mean_species[which(as.numeric(rownames(g_mean_species)) > 21000,18])
+sum(g_mean_species[which(as.numeric(rownames(g_mean_species)) > 21000,18]))
 ### Plot the geometric mean per bin per species, using different colors for herbivorous, carnivorous, and rodents####
 ### working !!!! ####
 for (sp in seq_along(colnames(g_mean_species))){

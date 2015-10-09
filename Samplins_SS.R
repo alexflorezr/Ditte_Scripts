@@ -23,18 +23,23 @@ require(sidier)
 ############################################################################################################################
 ############################################################################################################################
 setwd("~/Desktop/MSc_Ditte/")
-Sp_fast_slow <- read.delim("Velocity_species.txt", stringsAsFactors=F, header=T)
+Sp_fast_slow <- read.delim("Velocity_4_species", stringsAsFactors=F, header=T)
+Sp_fast_slow <- Sp_fast_slow[1,]
+str(Sp_fast_slow)
 #Sampling_aDNA <- function(Sp_fast_slow, database, ind_color){
 Sp_bef_aft <- as.data.frame(matrix(nrow=dim(Sp_fast_slow)[1], ncol=7))
 colnames(Sp_bef_aft) <- c("Species", "Bef", "Aft","Nuc_div_Total", "Phist", "Fst", "Nei_DA")
 Event_name <- "Fast and slow events"
 hist_rec_seq <- TRUE
 hist_add_SS <- TRUE
-hist_2gether <- TRUE
+hist_2gether <- FALSE
 subsampling <- FALSE
 plot_sub <- FALSE
 pop_stats <- FALSE
+adjacent_nuc <- TRUE
+buffer <- 7000
 setwd("~/Desktop/Ch1_Figures/Figure_one/Same_length_seqs/")
+plot.new()
 ###########################################################################################
 ### Plotting all histograms together #######################################################################################################
 if (hist_2gether == TRUE){
@@ -76,7 +81,18 @@ for (sp in seq_along(Sp_fast_slow$Species)){
       hist(temp_sp_seq_db$Mean_Age,breaks=seq(0, 50000, 2000), add=T, col=paste(sp_color, 90, sep=""), border=NA)
       #labels=as.character(temp_hist_rec$counts)
       #if (ind_color == T) {sp_color <= paste(Sp_fast_slow$Color_color[sp], 90, sep="")}
-      #text(x=temp_hist_seq$mids, y=0.5, labels=as.character(temp_hist_seq$counts), col="white", cex=0.7)
+      text(x=temp_hist_seq$mids, y=0.5, labels=as.character(temp_hist_seq$counts), cex=0.7, adj=c(0,0))
+      x_fast <- c(Sp_fast_slow$Fast_end[sp],Sp_fast_slow$Fast_end[sp], Sp_fast_slow$Fast_start[sp],Sp_fast_slow$Fast_start[sp])
+      x_fast_buffer <- x_fast+c(-buffer, -buffer, buffer, buffer)
+      y_fast <- c(0,temp_max, temp_max, 0 )
+      x_slow <- c(Sp_fast_slow$Slow_end[sp],Sp_fast_slow$Slow_end[sp], Sp_fast_slow$Slow_start[sp],Sp_fast_slow$Slow_start[sp])
+      x_slow_buffer <- x_slow+c(-buffer, -buffer, buffer, buffer)
+      y_slow <- c(0,temp_max, temp_max, 0 )
+      polygon(x=x_fast_buffer, y = y_fast, col="#FF7F0099", border="#FF7F0099")
+      polygon(x=x_fast, y = y_fast, col="#FF7F00", border="#FF7F00")
+      polygon(x=x_slow_buffer, y = y_slow, col= "#EEC59199", border= "#EEC59199")
+      polygon(x=x_slow, y = y_slow, col= "#EEC591", border= "#EEC591")
+      
     }
 ### ENDS HERE #########################################################################################################################
 ############################################################################################################################
@@ -118,19 +134,30 @@ for (sp in seq_along(Sp_fast_slow$Species)){
     }
 ### ENDS HERE #########################################################################################################################
 ############################################################################################################################
-    for (event in seq_along(Events)){  
-      temp_db_seqs_bef <- temp_sp_seq_db[temp_sp_seq_db$Mean_Age > Events[event], ]
-      temp_db_seqs_aft <- temp_sp_seq_db[temp_sp_seq_db$Mean_Age <= Events[event], ]
+    for (event in seq_along(Events)){
       temp_fasta <- read.FASTA(paste(tolower(temp_sp), "_fasta_new.fasta", sep=""))
       temp_vec <- c("temp_db_seqs_bef","temp_db_seqs_aft")
       start <- 1
       end <- dim(temp_db_seqs_bef)[1]
+      if(adjacent_nuc == T){
+        if (event == 1){
+          Events_start_end <- c(Sp_fast_slow$Fast_start[sp],Sp_fast_slow$Fast_end[sp], Sp_fast_slow$Slow_start[sp],Sp_fast_slow$Slow_end[sp])
+          temp_db_seqs_bef <- temp_sp_seq_db[(temp_sp_seq_db$Mean_Age < Events_start_end[1]+buffer) & (temp_sp_seq_db$Mean_Age > Events_start_end[1]),]
+          temp_db_seqs_aft <- temp_sp_seq_db[(temp_sp_seq_db$Mean_Age > Events_start_end[2]-buffer)& (temp_sp_seq_db$Mean_Age < Events_start_end[2]),]
+        }
+        if (event == 2){
+          Events_start_end <- c(Sp_fast_slow$Fast_start[sp],Sp_fast_slow$Fast_end[sp], Sp_fast_slow$Slow_start[sp],Sp_fast_slow$Slow_end[sp])
+          temp_db_seqs_bef <- temp_sp_seq_db[(temp_sp_seq_db$Mean_Age < Events_start_end[3]+buffer) & (temp_sp_seq_db$Mean_Age > Events_start_end[3]),]
+          temp_db_seqs_aft <- temp_sp_seq_db[(temp_sp_seq_db$Mean_Age > Events_start_end[4]-buffer)& (temp_sp_seq_db$Mean_Age < Events_start_end[4]),]
+        }
+      }
       for (bef_aft in seq_along(temp_vec)){
         temp_count_seq <- dim(get(temp_vec[bef_aft]))[1]
         temp_acc <- get(temp_vec[bef_aft])$Accession_GB
         temp_age <- get(temp_vec[bef_aft])$Mean_Age
         temp_err <- get(temp_vec[bef_aft])$Cal_Sigma
         temp_rep <- get(temp_vec[bef_aft])$Repeat
+        temp_Coor <- cbind(get(temp_vec[bef_aft])$Latitude, get(temp_vec[bef_aft])$Longitude)
         Temp_seq_name_fasta <- paste(temp_sp,temp_acc, temp_rep, temp_age,temp_err, sep="_") 
         temp_seqs  <- temp_fasta[as.vector(na.exclude(match(Temp_seq_name_fasta, labels(temp_fasta))))]
         ## pop gen SS ##
@@ -148,34 +175,34 @@ for (sp in seq_along(Sp_fast_slow$Species)){
           temp_theta  <- -999
           temp_pairdiff <- -999
         }
-        
         if (temp_vec[bef_aft] == "temp_db_seqs_bef"){
           temp_seqs_bef <- temp_seqs
           SS_bef <- c(temp_count_seq, temp_pairdiff, temp_nuc_div, round(dim(temp_num_hap)[1]), round(length(temp_segSites)), temp_theta)
-        }
+          temp_Coor_bef <- cbind(get(temp_vec[bef_aft])$Latitude, get(temp_vec[bef_aft])$Longitude)
+          }
         if (temp_vec[bef_aft] == "temp_db_seqs_aft"){
           temp_seqs_aft <- temp_seqs
           SS_aft <- c(temp_count_seq, temp_pairdiff, temp_nuc_div, round(dim(temp_num_hap)[1]), round(length(temp_segSites)), temp_theta)
-        }
+          temp_Coor_aft <- cbind(get(temp_vec[bef_aft])$Latitude, get(temp_vec[bef_aft])$Longitude)
+          }
       }
 ### STARTS HERE #########################################################################################################################
 ### Adding Summay statistics to the histograms #######################################################################################################
     if( hist_add_SS == TRUE){
       for (ss_bef in seq_along(SS_bef)){
-        text(round(SS_bef[ss_bef], digits=3), x=Events[event]+500, y=(temp_max/2.5)+sum(rep(temp_max/12, times=ss_bef)), col="#363636", adj=c(0,0), cex=0.7)
+        text(round(SS_bef[ss_bef], digits=3), x=Events[event]+2000, y=(temp_max/2.5)+sum(rep(temp_max/12, times=ss_bef)), col="#363636", adj=c(0,0), cex=0.7)
       }
       for (ss_aft in seq_along(SS_aft)){
-        text(round(SS_aft[ss_aft], digits=3), x=Events[event]-500, y=(temp_max/2.5)+sum(rep(temp_max/12, times=ss_aft)), col="#363636", adj=c(1,0), cex=0.7)
+        text(round(SS_aft[ss_aft], digits=3), x=Events[event]-2000, y=(temp_max/2.5)+sum(rep(temp_max/12, times=ss_aft)), col="#363636", adj=c(1,0), cex=0.7)
       }
       SS_name_vector <- c("n","dist", "nuc div", "hap", "seg", "theta")
       for (name in seq_along(SS_name_vector)){
         if((min(Events) > 10000) & (!is.na(min(Events)))){
-        text(SS_name_vector[name], x=7000, y=(temp_max/2.5)+sum(rep(temp_max/12, times=name)), col="#363636", adj=c(1,0), cex=0.7)
+        text(SS_name_vector[name], x=5000, y=(temp_max/2.5)+sum(rep(temp_max/12, times=name)), col="#363636", adj=c(1,0), cex=0.7)
         }
         if((min(Events) <= 10000) | is.na(min(Events))){
         text(SS_name_vector[name], x=40000, y=(temp_max/2.5)+sum(rep(temp_max/12, times=name)), col="#363636", adj=c(0,0), cex=0.7)
         }
-      abline(v=Events, lwd=5, col=c("#FF7F00", "#EEC591"))
       }
     }
     if (event == 1 ){
@@ -184,7 +211,8 @@ for (sp in seq_along(Sp_fast_slow$Species)){
     if (event == 2 ){
       Nuc_bef_aft_raw[(sp*2),] <- c(Sp_bef_aft$Species[sp],SS_bef[3], SS_aft[3],  (SS_bef[3] - SS_aft[3]), "Slow")
     }
-  }
+    }
+    
 ### ENDS HERE #########################################################################################################################
 ############################################################################################################################
 ### STARTS HERE #########################################################################################################################
@@ -249,7 +277,7 @@ for (sp in seq_along(Sp_fast_slow$Species)){
 ############################################################################################################################
     
   }
-  Sp_bef_aft[sp,] <- c(Sp_fast_slow$Species[sp], round(SS_bef[2], digits=4), round(SS_aft[2], digits=4), c(temp_nuc_div_total, temp_phist, temp_FST, temp_Nei_DA)) 
+  #Sp_bef_aft[sp,] <- c(Sp_fast_slow$Species[sp], round(SS_bef[2], digits=4), round(SS_aft[2], digits=4), c(temp_nuc_div_total, temp_phist, temp_FST, temp_Nei_DA)) 
 }
 
 
