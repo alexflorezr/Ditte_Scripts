@@ -12,7 +12,7 @@ for (i in seq_along(Full_DB$Latitude)){
 # remove the records without longitude and or latitude
 Full_DB_LL <- Full_DB[-full_vector,]
 # remove the records older than 50000 years
-DATABASE <- Full_DB_LL[-which(Full_DB_LL$Median_Age > 50000),]
+DATABASE <- Full_DB_LL[-which(Full_DB_LL$Median_Age >= 50000),]
 ############################################################################################################################
 ############################################################################################################################
 require(ape)
@@ -24,23 +24,32 @@ require(sidier)
 ############################################################################################################################
 setwd("~/Desktop/MSc_Ditte/")
 Sp_fast_slow <- read.delim("Velocity_4_species", stringsAsFactors=F, header=T)
-Sp_fast_slow <- Sp_fast_slow[3,]
-str(Sp_fast_slow)
+#Sp_fast_slow <- Sp_fast_slow[3,]
+#str(Sp_fast_slow)
 #Sampling_aDNA <- function(Sp_fast_slow, database, ind_color){
 Sp_bef_aft <- as.data.frame(matrix(nrow=dim(Sp_fast_slow)[1], ncol=7))
 colnames(Sp_bef_aft) <- c("Species", "Bef", "Aft","Nuc_div_Total", "Phist", "Fst", "Nei_DA")
 Event_name <- "Fast and slow events"
+# plot a histogram for the fossil record and the sequences
 hist_rec_seq <- TRUE
+# add events to the histogram
+plot_events <- TRUE
+# add the values of the SS to the histogram
 hist_add_SS <- TRUE
+# plot all the histograms in a single plot, like a grid
 hist_2gether <- FALSE
+# do a subsamling of the sequences when the sampling is different before and after
 subsampling <- FALSE
+# plot the subsampling
 plot_sub <- FALSE
-pop_stats <- FALSE
+# Estimate the population parameters
+pop_stats <- TRUE
+# Estimate the parameters using only the adjacent sequences
 adjacent_nuc <- TRUE
-buffer <- 7000
+# plot a map of the sequences 
 plot_map <- TRUE
+#this directory is for the alignments
 setwd("~/Desktop/Ch1_Figures/Figure_one/Same_length_seqs/")
-plot.new()
 ###########################################################################################
 ### Plotting all histograms together #######################################################################################################
 if (hist_2gether == TRUE){
@@ -51,6 +60,7 @@ if (hist_2gether == TRUE){
 }
 ### ENDS HERE #########################################################################################################################
 ################################################################################################################################
+buffer <- 7000
 Nuc_bef_aft_raw <- as.data.frame(matrix(nrow=length(Sp_fast_slow$Species)*2, ncol= 5))
 colnames(Nuc_bef_aft_raw) <- c("Species", "Nuc_bef", "Nuc_aft", "Nuc_diff", "Event_type")
 for (sp in seq_along(Sp_fast_slow$Species)){
@@ -74,15 +84,16 @@ for (sp in seq_along(Sp_fast_slow$Species)){
     temp_sp <-  paste(strsplit(temp_genus, split="")[[1]][1], strsplit(temp_specific, split="")[[1]][1], sep="")
 ### STARTS HERE #########################################################################################################################
 ### Plotting histograms #######################################################################################################
-    if( hist_rec_seq == TRUE){
+    if(hist_rec_seq == TRUE){
       hist(temp_sp_rec_db$Mean_Age, breaks=seq(0, 50000, 2000), main=NULL, xaxt="n", yaxt="n", ylab=NULL, xlab=NULL, col="#00BFFF50", border=NA)
       axis(side=1)
       axis(side=2)
       mtext(side=3, main_name, line=1)
       hist(temp_sp_seq_db$Mean_Age,breaks=seq(0, 50000, 2000), add=T, col=paste(sp_color, 90, sep=""), border=NA)
+      text(x=temp_hist_seq$mids, y=0.5, labels=as.character(temp_hist_seq$counts), cex=0.7, adj=c(0,0))
       #labels=as.character(temp_hist_rec$counts)
       #if (ind_color == T) {sp_color <= paste(Sp_fast_slow$Color_color[sp], 90, sep="")}
-      text(x=temp_hist_seq$mids, y=0.5, labels=as.character(temp_hist_seq$counts), cex=0.7, adj=c(0,0))
+      if (plot_events == TRUE){
       x_fast <- c(Sp_fast_slow$Fast_end[sp],Sp_fast_slow$Fast_end[sp], Sp_fast_slow$Fast_start[sp],Sp_fast_slow$Fast_start[sp])
       x_fast_buffer <- x_fast+c(-buffer, -buffer, buffer, buffer)
       y_fast <- c(0,temp_max, temp_max, 0 )
@@ -93,48 +104,97 @@ for (sp in seq_along(Sp_fast_slow$Species)){
       polygon(x=x_fast, y = y_fast, col="#FF7F00", border="#FF7F00")
       polygon(x=x_slow_buffer, y = y_slow, col= "#EEC59199", border= "#EEC59199")
       polygon(x=x_slow, y = y_slow, col= "#EEC591", border= "#EEC591")
-      
+      }
     }
 ### ENDS HERE #########################################################################################################################
 ############################################################################################################################
     temp_fasta_stats <- read.dna(paste(sp_short_name, "_fasta_new.fasta", sep=""), format = "fasta", as.character = FALSE, as.matrix=NULL)
-    temp_data_stats <- as.data.frame(matrix(nrow=dim(temp_fasta_stats)[1], ncol=3))
+    temp_stats_bef_aft <- temp_fasta_stats[1,]
+    temp_stats_fast <- temp_stats_bef_aft[-1,]
+    temp_data_stats_fast <- as.data.frame(matrix(nrow=dim(temp_fasta_stats)[1], ncol=3))
+    colnames(temp_data_stats_fast) <- c("name", "age", "era")
+    temp_stats_slow <- temp_stats_bef_aft[-1,]
+    temp_data_stats_slow <- as.data.frame(matrix(nrow=dim(temp_fasta_stats)[1], ncol=3))
+    colnames(temp_data_stats_slow) <- c("name", "age", "era")
+    temp_sp_all_stats <- as.data.frame(matrix(nrow=length(Sp_fast_slow$Species), ncol=11))
+    colnames(temp_sp_all_stats) <- c("Species", "FST", "FST_p", "phist", "phist_p", "chi2", "chi2_p", "fixed_diff", "nuc_divergence", "Nei_DA", "Shared_hap")
 #### STARTS HERE #########################################################################################################################
 #### Estimating population summary statistics ########################################################################################################################
+    counter <- 1
     if (pop_stats == TRUE){
-      for (name in 1:dim(temp_data_stats)[1]){
-        temp_data_stats[name,1] <- labels(temp_fasta_stats)[name]
-        temp_data_stats[name,2] <- as.numeric(strsplit(labels(temp_fasta_stats), spli="_")[[name]][4])
-        if( as.numeric(strsplit(labels(temp_fasta_stats), spli="_")[[name]][4]) > Events){
-          temp_data_stats[name,3] <- "Pleistocene"
-        }else{ temp_data_stats[name,3] <- "Holocene"
-        }
+      if(adjacent_nuc == T){
+        for(seq_age in 1:dim(temp_fasta_stats)[1]){
+          age_value <- as.numeric(strsplit(labels(temp_fasta_stats), split = "_")[[seq_age]][4])
+            if((age_value < Events_start_end[1]+buffer) & (age_value >= Events_start_end[1])){
+              temp_stats_fast <- rbind.DNAbin(temp_fasta_stats[seq_age,], temp_stats_fast)
+              temp_data_stats_fast[seq_age,c(1,2)] <- c(labels(temp_fasta_stats)[seq_age],(age_value))
+              temp_data_stats_fast[seq_age,3] <- "Before"
+            }
+            if((age_value > Events_start_end[2]-buffer) & (age_value <= Events_start_end[2])){
+              temp_stats_fast <- rbind.DNAbin(temp_fasta_stats[seq_age,], temp_stats_fast)
+              temp_data_stats_fast[seq_age,c(1,2)] <- c(labels(temp_fasta_stats)[seq_age],(age_value))
+              temp_data_stats_fast[seq_age,3] <- "After"
+            }
+            if((age_value < Events_start_end[3]+buffer) & (age_value >= Events_start_end[3])){
+              temp_stats_slow <- rbind.DNAbin(temp_fasta_stats[seq_age,], temp_stats_slow)
+              temp_data_stats_slow[seq_age,c(1,2)] <- c(labels(temp_fasta_stats)[seq_age],(age_value))
+              temp_data_stats_slow[seq_age,3] <- "Before"
+            }
+            if((age_value > Events_start_end[4]-buffer) & (age_value < Events_start_end[4])){
+              temp_stats_slow <- rbind.DNAbin(temp_fasta_stats[seq_age,], temp_stats_slow)
+              temp_data_stats_slow[seq_age,c(1,2)] <- c(labels(temp_fasta_stats)[seq_age],(age_value))
+              temp_data_stats_slow[seq_age,3] <- "After"
+            }
+          }
+      temp_data_stats_fast <- na.omit(temp_data_stats_fast)
+      temp_data_stats_slow <- na.omit(temp_data_stats_slow)
       }
-      colnames(temp_data_stats) <- c("name", "age", "era")
-      haps <-FindHaplo(align=temp_fasta_stats, saveFile=F)
-      as.data.frame(haps)
-      colnames(haps)<-c("UniqueInd", "haplotype")
-      full_data <- cbind(temp_data_stats, haps)
-      if(length(unique(temp_data_stats[,3])) >= 2){
-        if (sum(full_data[,1] == full_data[,4]) == length(full_data[,1])){
-          N_haps<-length(unique(full_data$haplotype))###add number of haplotypes as one of statistics to be output
-          sp_haps <-GetHaplo(align=temp_fasta_stats, saveFile=T, outname=paste(sp_short_name,"_Pops.fasta", sep=""), format="fasta", seqsNames="Inf.Hap") #haps are now a DNAbin
-          sp_ghaps<-read.fasta(paste(sp_short_name,"_Pops.fasta", sep="")) #imports haps as gtypes
-          sp_gtype<-gtypes(gen.data=data.frame(full_data$UniqueInd,full_data$era,full_data$haplotype),id.col=1,strata.col=2,locus.col=3,dna.seq=sp_ghaps)
-          temp_nuc_div_total <- nuc.div(temp_fasta_stats, variance = F, pairwise.deletion = FALSE)
-          temp_phist <- stat.phist(sp_gtype)$estimate
-          temp_FST <- stat.fst(sp_gtype)$estimate
-          temp_Nei_DA <- nei.Da(sp_gtype)$Da
-          #Sp_stats[sp,] <- c(sp_short_name, temp_nuc_div_total, temp_phist, temp_FST, temp_Nei_DA)
+      Type_event <- c("fast", "slow")
+      for (type_event in seq_along(Type_event)){
+        temp_fasta_stats_event <- get(paste("temp_stats_", Type_event[type_event], sep=""))
+        haps <-FindHaplo(align=temp_fasta_stats_event, saveFile=F)
+        haps <- as.data.frame(haps)
+        colnames(haps)<-c("UniqueInd", "haplotype")
+        haps$UniqueInd <- levels(haps$UniqueInd)
+        temp_data_stats_event <- get(paste("temp_data_stats_", Type_event[type_event], sep=""))
+        matched <- match(haps$UniqueInd, temp_data_stats_event[,1])
+        temp_data_stats_event_m <- temp_data_stats_event[matched,]
+        full_data <- cbind(temp_data_stats_event_m, haps)
+        if(length(unique(temp_data_stats_event[,3])) >= 2){
+          if (sum(full_data[,1] == full_data[,4]) == length(full_data[,1])){
+            sp_haps <-GetHaplo(align=temp_fasta_stats_event, saveFile=T, outname=paste(sp_short_name,"_Pops.fasta", sep=""), format="fasta", seqsNames="Inf.Hap") #haps are now a DNAbin
+            sp_ghaps<-read.fasta(paste(sp_short_name,"_Pops.fasta", sep="")) #imports haps as gtypes
+            sp_gtype<-gtypes(gen.data=data.frame(full_data$UniqueInd,full_data$era,full_data$haplotype),id.col=1,strata.col=2,locus.col=3,dna.seq=sp_ghaps)
+            #population differentiation
+            temp_pop_diff <-pop.diff.test(sp_gtype)
+            #FST
+            temp_FST <- as.vector(temp_pop_diff$overall$result[1,])
+            #Fi-st
+            temp_phist <- as.vector(temp_pop_diff$overall$result[2,])
+            #chi squared
+            Temp_chi2 <-  as.vector(temp_pop_diff$overall$result[3,])
+            #Fixed differences
+            temp_fixed <- fixed.differences(sp_gtype, count.indels = F,bases = c("a", "c", "g", "t"))$num.fixed[,3]
+            #Nucleotide divergence
+            temp_nuc_divergence_all <- nucleotide.divergence(sp_gtype)
+            temp_nuc_divergence <- temp_nuc_divergence_all$between$mean
+            #Nei's DA
+            temp_nei_DA <- temp_nuc_divergence_all$between$dA
+            #Shared Haplotypes
+            temp_shared <- shared.haps(sp_gtype)$shared.haps
         }else{
           print("Haplotype table and data table do not match the names")
         }
       }else{
         print(paste("no data for ", main_name, sep=""))
       }
-    }
+      temp_sp_all_stats[counter,] <- c(Sp_fast_slow$Species[sp], Type_event[type_event], temp_FST, temp_phist,Temp_chi2, temp_fixed,temp_nuc_divergence, temp_nei_DA, temp_shared)
+      counter <- counter + 1
+      }
+      }
 ### ENDS HERE #########################################################################################################################
 ############################################################################################################################
+    if (pop_stats == FALSE){
     for (event in seq_along(Events)){
       temp_fasta <- read.FASTA(paste(tolower(temp_sp), "_fasta_new.fasta", sep=""))
       temp_vec <- c("temp_db_seqs_bef","temp_db_seqs_aft")
@@ -225,6 +285,7 @@ for (sp in seq_along(Sp_fast_slow$Species)){
       }
       }
     }
+    }
     
 ### ENDS HERE #########################################################################################################################
 ############################################################################################################################
@@ -294,6 +355,21 @@ for (sp in seq_along(Sp_fast_slow$Species)){
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ### STARTS HERE #########################################################################################################################
 ############################################################################################################################
 plot_nuc_bef_aft  <- Nuc_bef_aft_raw
@@ -304,13 +380,6 @@ for (spe in seq_along(plot_nuc_bef_aft$Species)){
   text(x=spe, y=as.numeric(plot_nuc_bef_aft$Nuc_diff)[spe], plot_nuc_bef_aft$Species[spe], srt=90, adj=c(1,0), cex=0.8)
 }
   
-
-
-
-
-
-
-
 temp_plot_by <- as.data.frame(matrix(nrow=length(Sp_bef_aft[,1]),ncol=8))
 temp_plot_by[,c(1,2,3)] <- Sp_bef_aft[,c(1,2,3)]
 temp_plot_by[,c(5,6,7,8)] <- Sp_bef_aft[,c(4,5,6,7)]
@@ -360,8 +429,6 @@ for (line in c(0, 0.01, 0.02, 0.04, 0.08)){
 }
 text(x=0.7, y=c(0,0.01, 0.02, 0.04, 0.08),  c(0,0.01, 0.02, 0.04, 0.08), cex=0.7, adj=c(0.5,-0.5))
 mtext(side=2, "Nucleotide diversity", col="#3D3D3D", line=-1, cex=1.5)
-
-
 ###### for a plot using stats #####
 Title <- "Change in nucleotide diversity and temporal population structure (FST)"
 plot(x=seq(1,dim(Plot_bef_aft_by_diff)[1], by=1), ylim=c(-0.01,0.082), xlim=c(0,dim(Plot_bef_aft_by_diff)[1]+2), frame = F, xaxt="n", xlab=NA, ylab=NA, yaxt="n")
