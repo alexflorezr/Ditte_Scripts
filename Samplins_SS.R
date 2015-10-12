@@ -116,8 +116,9 @@ for (sp in seq_along(Sp_fast_slow$Species)){
     temp_stats_slow <- temp_stats_bef_aft[-1,]
     temp_data_stats_slow <- as.data.frame(matrix(nrow=dim(temp_fasta_stats)[1], ncol=3))
     colnames(temp_data_stats_slow) <- c("name", "age", "era")
-    temp_sp_all_stats <- as.data.frame(matrix(nrow=length(Sp_fast_slow$Species), ncol=11))
-    colnames(temp_sp_all_stats) <- c("Species", "FST", "FST_p", "phist", "phist_p", "chi2", "chi2_p", "fixed_diff", "nuc_divergence", "Nei_DA", "Shared_hap")
+    col_names <- c("Species","Event_type", "n_bef", "n_aft", "nuc_bef_ape","nuc_bef_stG","nuc_aft_ape", "nuc_aft_stG", "seg_bef","seg_aft","FST", "FST_p", "Phist", "Phist_p", "Chi2", "Chi2_p", "Fixed_diff", "Nuc_divergence", "Nei_DA", "Shared_hap")
+    temp_sp_all_stats <- as.data.frame(matrix(nrow=length(Sp_fast_slow$Species), ncol=length(col_names)))
+    colnames(temp_sp_all_stats) <- col_names 
 #### STARTS HERE #########################################################################################################################
 #### Estimating population summary statistics ########################################################################################################################
     counter <- 1
@@ -165,6 +166,42 @@ for (sp in seq_along(Sp_fast_slow$Species)){
             sp_haps <-GetHaplo(align=temp_fasta_stats_event, saveFile=T, outname=paste(sp_short_name,"_Pops.fasta", sep=""), format="fasta", seqsNames="Inf.Hap") #haps are now a DNAbin
             sp_ghaps<-read.fasta(paste(sp_short_name,"_Pops.fasta", sep="")) #imports haps as gtypes
             sp_gtype<-gtypes(gen.data=data.frame(full_data$UniqueInd,full_data$era,full_data$haplotype),id.col=1,strata.col=2,locus.col=3,dna.seq=sp_ghaps)
+            ######## Before
+            temp_fasta_stats_event_bef <- temp_fasta_stats_event[match(full_data$UniqueInd[full_data$era == "Before"], labels(temp_fasta_stats_event)),]
+            haps_bef <-FindHaplo(align=temp_fasta_stats_event_bef, saveFile=F)
+            haps_bef <- as.data.frame(haps_bef)
+            colnames(haps_bef)<-c("UniqueInd", "haplotype")
+            haps_bef$UniqueInd <- levels(haps_bef$UniqueInd)
+            temp_data_stats_event_bef <- temp_data_stats_event[temp_data_stats_event$era == "Before",]
+            matched <- match(haps_bef$UniqueInd, temp_data_stats_event_bef[,1])
+            temp_data_stats_event_bef_m <- temp_data_stats_event_bef[matched,]
+            full_data_bef <- cbind(temp_data_stats_event_bef_m, haps_bef)
+            sp_haps_bef <-GetHaplo(align=temp_fasta_stats_event_bef, saveFile=T, outname=paste(sp_short_name,"_Pops_bef.fasta", sep=""), format="fasta", seqsNames="Inf.Hap") #haps are now a DNAbin
+            sp_ghaps_bef <-read.fasta(paste(sp_short_name,"_Pops_bef.fasta", sep="")) #imports haps as gtypes
+            sp_gtype_bef <- gtypes(gen.data=data.frame(full_data_bef$UniqueInd,full_data_bef$era,full_data_bef$haplotype),id.col=1,strata.col=2,locus.col=3,dna.seq=sp_ghaps_bef)
+            ######## After
+            temp_fasta_stats_event_aft <- temp_fasta_stats_event[match(full_data$UniqueInd[full_data$era == "After"], labels(temp_fasta_stats_event)),]
+            haps_aft <-FindHaplo(align=temp_fasta_stats_event_aft, saveFile=F)
+            haps_aft <- as.data.frame(haps_aft)
+            colnames(haps_aft)<-c("UniqueInd", "haplotype")
+            haps_aft$UniqueInd <- levels(haps_aft$UniqueInd)
+            temp_data_stats_event_aft <- temp_data_stats_event[temp_data_stats_event$era == "After",]
+            matched <- match(haps_aft$UniqueInd, temp_data_stats_event_aft[,1])
+            temp_data_stats_event_aft_m <- temp_data_stats_event_aft[matched,]
+            full_data_aft <- cbind(temp_data_stats_event_aft_m, haps_aft)
+            sp_haps_aft <-GetHaplo(align=temp_fasta_stats_event_aft, saveFile=T, outname=paste(sp_short_name,"_Pops_aft.fasta", sep=""), format="fasta", seqsNames="Inf.Hap") #haps are now a DNAbin
+            sp_ghaps_aft <-read.fasta(paste(sp_short_name,"_Pops_aft.fasta", sep="")) #imports haps as gtypes
+            sp_gtype_aft <- gtypes(gen.data=data.frame(full_data_aft$UniqueInd,full_data_aft$era,full_data_aft$haplotype),id.col=1,strata.col=2,locus.col=3,dna.seq=sp_ghaps_aft)
+            #SS before
+            n_bef <- dim(temp_fasta_stats_event_bef)[1]
+            nuc_bef_ape <- nuc.div(temp_fasta_stats_event_bef, pairwise.deletion = T)
+            nuc_bef_stG <- mean(as.vector(nucleotide.diversity(sp_gtype_bef, bases = c("a", "c", "g", "t"))))
+            temp_s_sites_bef <- dim(variable.sites(sp_gtype_bef, bases = c("a", "c", "g", "t"))$site.freqs)[2]
+            #SS after
+            n_aft <- dim(temp_fasta_stats_event_aft)[1]
+            nuc_aft_ape <- nuc.div(temp_fasta_stats_event_aft, pairwise.deletion = T)
+            nuc_aft_stG <- mean(as.vector(nucleotide.diversity(sp_gtype_aft, bases = c("a", "c", "g", "t"))))
+            temp_s_sites_aft <- dim(variable.sites(sp_gtype_aft, bases = c("a", "c", "g", "t"))$site.freqs)[2]
             #population differentiation
             temp_pop_diff <-pop.diff.test(sp_gtype)
             #FST
@@ -188,7 +225,7 @@ for (sp in seq_along(Sp_fast_slow$Species)){
       }else{
         print(paste("no data for ", main_name, sep=""))
       }
-      temp_sp_all_stats[counter,] <- c(Sp_fast_slow$Species[sp], Type_event[type_event], temp_FST, temp_phist,Temp_chi2, temp_fixed,temp_nuc_divergence, temp_nei_DA, temp_shared)
+      temp_sp_all_stats[counter,] <- c(Sp_fast_slow$Species[sp], Type_event[type_event], n_bef, n_aft, nuc_bef_ape, nuc_bef_stG,nuc_aft_ape, nuc_aft_stG, temp_s_sites_bef, temp_s_sites_aft,  temp_FST, temp_phist,Temp_chi2, temp_fixed,temp_nuc_divergence, temp_nei_DA, temp_shared)
       counter <- counter + 1
       }
       }
